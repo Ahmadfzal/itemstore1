@@ -5,8 +5,8 @@ import {
   useCreatePackage,
   useUpdatePackage,
   useDeletePackage,
-} from "@workspace/api-client-react";
-import { useState } from "react";
+} from "@/lib/queries";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -603,32 +603,83 @@ function AdminPanel({ toast }: { toast: ReturnType<typeof useToast>["toast"] }) 
   const [newUnit, setNewUnit] = useState("");
   const [savingUnits, setSavingUnits] = useState(false);
 
+  // Sync lokal state ketika settings context berhasil dimuat dari API.
+  useEffect(() => { 
+    if (settings.categories) setCategories(settings.categories); 
+  }, [settings.categories]);
+
+  useEffect(() => { 
+    if (settings.units) setUnits(settings.units); 
+  }, [settings.units]);
+
+  // ─── Fungsi Simpan Otomatis ke Database ───
   const saveCategories = async (list: string[]) => {
     setSavingCats(true);
     try {
-      const res = await fetch("/api/admin/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ categories: JSON.stringify(list) }) });
+      const res = await fetch("/api/admin/settings", { 
+        method: "PATCH", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ categories: JSON.stringify(list) }) 
+      });
       const data = await res.json();
       let cats: string[] = list;
       try { cats = JSON.parse(data.categories ?? "[]"); } catch {}
       setCategories(cats);
       setSettings({ ...settings, categories: cats });
       toast({ title: "Kategori disimpan ✓" });
-    } catch { toast({ variant: "destructive", title: "Gagal simpan kategori" }); }
-    finally { setSavingCats(false); }
+    } catch { 
+      toast({ variant: "destructive", title: "Gagal simpan kategori" }); 
+    } finally { 
+      setSavingCats(false); 
+    }
   };
 
   const saveUnits = async (list: string[]) => {
     setSavingUnits(true);
     try {
-      const res = await fetch("/api/admin/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ units: JSON.stringify(list) }) });
+      const res = await fetch("/api/admin/settings", { 
+        method: "PATCH", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ units: JSON.stringify(list) }) 
+      });
       const data = await res.json();
       let us: string[] = list;
       try { us = JSON.parse(data.units ?? "[]"); } catch {}
       setUnits(us);
       setSettings({ ...settings, units: us });
       toast({ title: "Satuan disimpan ✓" });
-    } catch { toast({ variant: "destructive", title: "Gagal simpan satuan" }); }
-    finally { setSavingUnits(false); }
+    } catch { 
+      toast({ variant: "destructive", title: "Gagal simpan satuan" }); 
+    } finally { 
+      setSavingUnits(false); 
+    }
+  };
+  
+  
+  const handleCategoryKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const t = newCategory.trim();
+      if (t && !categories.includes(t)) {
+        const updatedCats = [...categories, t];
+        setCategories(updatedCats); // Update UI Lokal
+        saveCategories(updatedCats); // Langsung Tembak & Simpan ke Database
+        setNewCategory(""); // Kosongkan Input
+      }
+    }
+  };
+
+  const handleUnitKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const t = newUnit.trim();
+      if (t && !units.includes(t)) {
+        const updatedUnits = [...units, t];
+        setUnits(updatedUnits); // Update UI Lokal
+        saveUnits(updatedUnits); // Langsung Tembak & Simpan ke Database
+        setNewUnit(""); // Kosongkan Input
+      }
+    }
   };
 
   // ─── Orders ──────────────────────────────────────────────
@@ -872,13 +923,11 @@ function AdminPanel({ toast }: { toast: ReturnType<typeof useToast>["toast"] }) 
               </div>
               <div className="flex gap-2">
                 <Input
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const t = newCategory.trim(); if (t && !categories.includes(t)) { setCategories([...categories, t]); setNewCategory(""); } } }}
-                  placeholder="Nama kategori baru..."
-                  className="h-9 bg-background/50 border-white/10 focus-visible:ring-primary text-sm flex-1"
-                  maxLength={30}
-                />
+  value={newCategory}
+  onChange={(e) => setNewCategory(e.target.value)}
+  onKeyDown={handleCategoryKeyDown} // <-- Pasang ini
+  placeholder="Tambah kategori baru..."
+/>
                 <Button type="button" size="sm" className="h-9 px-3 bg-white/10 text-white border border-white/10 hover:bg-white/20"
                   onClick={() => { const t = newCategory.trim(); if (t && !categories.includes(t)) { setCategories([...categories, t]); setNewCategory(""); } }}>
                   <Plus className="w-4 h-4" />
@@ -909,13 +958,11 @@ function AdminPanel({ toast }: { toast: ReturnType<typeof useToast>["toast"] }) 
               </div>
               <div className="flex gap-2">
                 <Input
-                  value={newUnit}
-                  onChange={(e) => setNewUnit(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const t = newUnit.trim(); if (t && !units.includes(t)) { setUnits([...units, t]); setNewUnit(""); } } }}
-                  placeholder="Nama satuan baru (cth: Gem)..."
-                  className="h-9 bg-background/50 border-white/10 focus-visible:ring-primary text-sm flex-1"
-                  maxLength={20}
-                />
+  value={newUnit}
+  onChange={(e) => setNewUnit(e.target.value)}
+  onKeyDown={handleUnitKeyDown} // <-- Pasang ini
+  placeholder="Tambah satuan baru..."
+/>
                 <Button type="button" size="sm" className="h-9 px-3 bg-white/10 text-white border border-white/10 hover:bg-white/20"
                   onClick={() => { const t = newUnit.trim(); if (t && !units.includes(t)) { setUnits([...units, t]); setNewUnit(""); }  }}>
                   <Plus className="w-4 h-4" />
