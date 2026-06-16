@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Tektur:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --font-sans: var(--app-font-sans);
+  --font-display: var(--app-font-display);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  /* DARK NEON GAMING THEME - Default to dark mode natively */
+  --background: 240 20% 6%;
+  --foreground: 0 0% 98%;
+  
+  --card: 240 20% 10%;
+  --card-foreground: 0 0% 98%;
+  --card-border: 240 20% 15%;
+  
+  --popover: 240 20% 10%;
+  --popover-foreground: 0 0% 98%;
+  --popover-border: 240 20% 15%;
+  
+  --primary: 180 100% 50%; /* Neon Cyan */
+  --primary-foreground: 240 20% 6%;
+  
+  --secondary: 300 100% 50%; /* Neon Magenta */
+  --secondary-foreground: 0 0% 98%;
+  
+  --muted: 240 20% 15%;
+  --muted-foreground: 240 10% 65%;
+  
+  --accent: 300 100% 50%;
+  --accent-foreground: 0 0% 98%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 240 20% 18%;
+  --input: 240 20% 15%;
+  --ring: 180 100% 50%;
+
+  --app-font-sans: 'Saira', sans-serif;
+  --app-font-display: 'Tektur', sans-serif;
+  --radius: 0.75rem;
+
+  --shadow-neon: 0 0 15px hsl(var(--primary) / 0.3), inset 0 0 5px hsl(var(--primary) / 0.1);
+  --shadow-neon-hover: 0 0 25px hsl(var(--primary) / 0.5), inset 0 0 10px hsl(var(--primary) / 0.2);
+  --shadow-magenta: 0 0 15px hsl(var(--secondary) / 0.3), inset 0 0 5px hsl(var(--secondary) / 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    background-image: 
+      radial-gradient(circle at 15% 50%, hsl(300 100% 50% / 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, hsl(180 100% 50% / 0.08), transparent 25%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--app-font-display);
+    @apply font-bold tracking-wide uppercase;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-xl border border-white/5;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
+  }
+  
+  .text-glow-magenta {
+    text-shadow: 0 0 10px hsl(var(--secondary) / 0.5);
+  }
+}

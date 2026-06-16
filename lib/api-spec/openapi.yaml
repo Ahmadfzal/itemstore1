@@ -1,0 +1,567 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Game Top-Up Website API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: packages
+    description: Top-up package operations
+  - name: orders
+    description: Order operations
+  - name: settings
+    description: Store settings
+  - name: admin
+    description: Admin operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /packages:
+    get:
+      operationId: listPackages
+      tags: [packages]
+      summary: List all top-up packages
+      responses:
+        "200":
+          description: List of packages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Package"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get public store settings
+      responses:
+        "200":
+          description: Store settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreSettings"
+
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{id}/proof:
+    post:
+      operationId: uploadOrderProof
+      tags: [orders]
+      summary: Upload payment proof for an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProofInput"
+      responses:
+        "200":
+          description: Proof uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Verify admin password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Login result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginResult"
+
+  /admin/settings:
+    patch:
+      operationId: updateSettings
+      tags: [admin]
+      summary: Update store settings (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsInput"
+      responses:
+        "200":
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreSettings"
+
+  /admin/packages:
+    post:
+      operationId: createPackage
+      tags: [admin]
+      summary: Create a new top-up package (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageInput"
+      responses:
+        "201":
+          description: Package created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/packages/{id}:
+    patch:
+      operationId: updatePackage
+      tags: [admin]
+      summary: Update a top-up package (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageUpdate"
+      responses:
+        "200":
+          description: Package updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+        "404":
+          description: Package not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deletePackage
+      tags: [admin]
+      summary: Delete a top-up package (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Package deleted
+        "404":
+          description: Package not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/orders:
+    get:
+      operationId: listAdminOrders
+      tags: [admin]
+      summary: List all orders (admin)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of all orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderWithPackage"
+
+  /admin/orders/{id}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [admin]
+      summary: Update order status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderStatusInput"
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    StoreSettings:
+      type: object
+      properties:
+        storeName:
+          type: string
+        whatsappNumber:
+          type: string
+        storeTheme:
+          type: string
+        packageUnit:
+          type: string
+        categories:
+          type: string
+        units:
+          type: string
+        heroStatus:
+          type: string
+        heroTitle1:
+          type: string
+        heroTitle2:
+          type: string
+        heroSubtitle:
+          type: string
+        heroBgImage:
+          type: ["string", "null"]
+      required:
+        - storeName
+        - whatsappNumber
+        - storeTheme
+
+    SettingsInput:
+      type: object
+      properties:
+        storeName:
+          type: ["string", "null"]
+        whatsappNumber:
+          type: ["string", "null"]
+        storeTheme:
+          type: ["string", "null"]
+        adminPassword:
+          type: ["string", "null"]
+        packageUnit:
+          type: ["string", "null"]
+        categories:
+          type: ["string", "null"]
+        units:
+          type: ["string", "null"]
+        heroStatus:
+          type: ["string", "null"]
+        heroTitle1:
+          type: ["string", "null"]
+        heroTitle2:
+          type: ["string", "null"]
+        heroSubtitle:
+          type: ["string", "null"]
+        heroBgImage:
+          type: ["string", "null"]
+
+    AdminLoginInput:
+      type: object
+      properties:
+        password:
+          type: string
+      required:
+        - password
+
+    AdminLoginResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    Package:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        amount:
+          type: integer
+        price:
+          type: number
+        currency:
+          type: string
+        category:
+          type: string
+        popular:
+          type: boolean
+        unit:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - description
+        - amount
+        - price
+        - currency
+        - category
+        - popular
+        - createdAt
+
+    OrderInput:
+      type: object
+      properties:
+        packageId:
+          type: integer
+        gameId:
+          type: string
+        username:
+          type: ["string", "null"]
+        customerNotes:
+          type: ["string", "null"]
+        contactPhone:
+          type: string
+      required:
+        - packageId
+        - gameId
+        - contactPhone
+
+    ProofInput:
+      type: object
+      properties:
+        proofImageUrl:
+          type: string
+      required:
+        - proofImageUrl
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        packageId:
+          type: integer
+        gameId:
+          type: string
+        username:
+          type: ["string", "null"]
+        customerNotes:
+          type: ["string", "null"]
+        contactPhone:
+          type: string
+        status:
+          type: string
+        proofImageUrl:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - packageId
+        - gameId
+        - contactPhone
+        - status
+        - createdAt
+        - updatedAt
+
+    OrderWithPackage:
+      type: object
+      properties:
+        id:
+          type: integer
+        packageId:
+          type: integer
+        gameId:
+          type: string
+        username:
+          type: ["string", "null"]
+        customerNotes:
+          type: ["string", "null"]
+        contactPhone:
+          type: string
+        status:
+          type: string
+        proofImageUrl:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        package:
+          $ref: "#/components/schemas/Package"
+      required:
+        - id
+        - packageId
+        - gameId
+        - contactPhone
+        - status
+        - createdAt
+        - updatedAt
+        - package
+
+    OrderStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+      required:
+        - status
+
+    PackageInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        amount:
+          type: integer
+        price:
+          type: number
+        currency:
+          type: string
+        category:
+          type: string
+        popular:
+          type: boolean
+        unit:
+          type: string
+      required:
+        - name
+        - description
+        - amount
+        - price
+        - currency
+        - category
+        - popular
+
+    PackageUpdate:
+      type: object
+      properties:
+        name:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        amount:
+          type: ["integer", "null"]
+        price:
+          type: ["number", "null"]
+        currency:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        popular:
+          type: ["boolean", "null"]
+        unit:
+          type: ["string", "null"]
