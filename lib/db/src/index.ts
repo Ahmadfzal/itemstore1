@@ -1,7 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./schema";
-
 const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
@@ -16,6 +15,16 @@ export const pool = new Pool({
     rejectUnauthorized: false
   }
 });
-export const db = drizzle(pool, { schema });
 
+// Test koneksi saat startup
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Database connection error:', err.message, err.stack);
+  } else {
+    console.log('Database connected successfully');
+    release();
+  }
+});
+
+export const db = drizzle(pool, { schema });
 export * from "./schema";
